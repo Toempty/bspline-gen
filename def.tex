@@ -1,0 +1,137 @@
+\documentclass {article}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{ulem}
+\usepackage[all]{xy}
+
+\providecommand{\abs}[1]{\lvert#1\rvert}
+\providecommand{\norm}[1]{\lVert#1\rVert}
+
+\begin {document}
+\normalem  % Overrides the ulem package to preserve italics based emphasis.
+
+\section{DeBoor definition}
+
+\begin{equation}
+\lbrace \Omega \rbrace_{jk} = \int B_j^{\prime\prime}(t) B_k^{\prime\prime}(t) dt
+\end{equation}
+
+\begin{equation}
+[ \tau_i,...,\tau_{i+r}]g = \frac{\tau_{i+1},...,\tau_{i+r}]g - \tau_i,...,\tau_{i+r-1}]g}{\tau_{i+r}-\tau_{i}}
+\end{equation}
+
+\begin{equation}
+B_{j,k,t}(x) := (t_{j+k}-t_j)[t_j,...,t_{j+k}](\cdot - x)_+^{k-1}
+\end{equation}
+
+\section{Hastie definition}
+An order-M spline with knots \({\xi}_j\), \(j=1,...,K\) is a piece-wise polynomial of order \(M\),
+and has continuous derivatives up to order \(M-2\). A cubic spline has order \(M=4\).
+\begin{equation}
+\begin{array}{l}
+\tau_1 \le \tau_2 \le \dotsi \le \tau_M \le \xi_0 \\
+\tau_{j+M} = \xi_j, j=1,\dotsi,K \\
+\xi_{K+1} \le \tau_{K+M+1} \le \tau_{K+M+2} \le \dotsi \le \tau_{K+2M}
+\end{array}
+\end{equation}
+
+\begin{equation}
+	B_{i,1}(x)
+	= \left\{
+  \begin{array}{l l}
+  	1 & \text{if } \tau_i \le x < \tau_{i+1} \\
+    0 & \text{otherwise} \\
+  \end{array} \right.
+\end{equation}
+for \(i=1,...,K+2M-1\). (Haar functions.)
+
+\begin{equation}
+	B_{i,m}(x) = \frac{x-\tau_i}{\tau_{i+m-1}-\tau_i}B_{i,m-1}(x) + \frac{\tau_{i+m}-x}{\tau_{i+m}-\tau_{i+1}}B_{i+1,m-1}(x)
+\end{equation}
+for \(i=1,...,K+2M-m\).
+
+\section{Hastie smoothing}
+\begin{equation}
+	RSS(f,\lambda) = \sum\limits_{i=1}^N \lbrace y_i-f(x_i)\rbrace^2 + \lambda \int\lbrace f^{\prime\prime}(t)\rbrace^2 dt
+\end{equation}
+
+\begin{equation}
+	f(x) = \sum\limits_{j=1}^N N_j(x)\theta_j
+\end{equation}
+
+\begin{equation}
+	RSS(\theta,\lambda) = (\mathbf{y} - \mathbf{N}\theta)^T(\mathbf{y} - \mathbf{N}\theta) + \lambda\theta^T\mathbf{\Omega}_N\theta
+%	RSS(\theta_p,\lambda) = (\mathbf{y} - \mathbf{N_p}\theta_p)^T(\mathbf{y} - \mathbf{N_p}\theta_p) + \lambda\theta_p^T\mathbf{\Omega}_{N_p}\theta_p
+\end{equation}
+...where \(\lbrace\mathbf{N}\rbrace_{ij} = N_j(x_i)\) and \(\lbrace\mathbf{\Omega}_N\rbrace_{jk} = \int N_j^{\prime\prime}(t)N_k^{\prime\prime}(t)dt\).
+
+\begin{equation}
+\hat{\theta} = (\mathbf{N}^T\mathbf{N} + \lambda\mathbf{\Omega}_N)^{-1}\mathbf{N}^T\mathbf{y}
+\end{equation}
+\begin{equation}
+\hat{f}(x) = \sum\limits_{j=1}^N N_j(x)\hat{\theta}_j
+%\hat{f}_p(x) = \sum\limits_{j=1}^N N_{pj}(x)\hat{\theta}_{pj}
+\end{equation}
+
+\begin{equation}
+\hat{f}^\prime(x) = \sum\limits_{j=1}^N N_j^\prime(x)\hat{\theta}_j
+\end{equation}
+
+From here on we need to deal with multiple spline fits to different probes' time series.
+\begin{equation}
+	f_p(x) = \sum\limits_{j=1}^N N_j(x)\theta_{pj}
+\end{equation}
+Notice that the basis need not change. It is determined solely by the knots (time points).
+\begin{equation}
+\begin{split}
+D(p, q ) &= \int \abs{\hat{f}_p^\prime(x)-\hat{f}_q^\prime(x)} dx \\
+&= \int \abs{\sum\limits_{j=1}^N N_j^\prime(x)\theta_{pj}-\sum\limits_{j=1}^N N_j^\prime(x)\theta_{qj}} dx \\
+&= \sum\limits_{i=0}^4 \int\limits_{\xi_i}^{\xi_{i+1}} \abs{\sum\limits_{j=i}^{i+3} N_j^\prime(x)\theta_{pj}-\sum\limits_{j=i}^{i+3} N_j^\prime(x)\theta_{qj}} dx \\
+&= \sum\limits_{i=0}^4 \int\limits_{\xi_i}^{\xi_{i+1}} \abs{\sum\limits_{j=i}^{i+3} (\theta_{pj}-\theta_{qj})N_j^\prime(x)} dx \\
+&= \sum\limits_{i=0}^4 \left\{ 
+	\int\limits_{\xi_i}^{\alpha_i} \sum\limits_{j=i}^{i+3} (\theta_{pj}-\theta_{qj})N_j^\prime(x) dx 
+	+ \int\limits_{\alpha_i}^{\beta_i} \sum\limits_{j=i}^{i+3} (\theta_{pj}-\theta_{qj})N_j^\prime(x) dx 
+	+ \int\limits_{\beta_i}^{\xi_{i+1}} \sum\limits_{j=i}^{i+3} (\theta_{pj}-\theta_{qj})N_j^\prime(x) dx 
+	\right\}
+\end{split}
+\end{equation}
+Because the \(N_j^\prime(x)\) are quadratics, in each interval there can be no more than 2 curve crossings,
+so it is possible to break up the full integral into a small number of intervals (at most \(3k\)) on each
+of which \(D\) is exactly solvable.
+\newpage
+\section{Implementation guides}
+\begin{center}
+\begin{tabular}{r|c c c c c}
+ & \multicolumn{5}{c}{Interval} \\
+       & 0 & 1 & 2 & 3 & 4 \\
+Spline & [0,1) & [1,2) & [2,4) & [4,6) & [6,12] \\
+\hline
+0 & x & . & . & . & . \\
+1 & x & x & . & . & . \\
+2 & x & x & x & . & . \\
+3 & x & x & x & x & . \\
+4 & . & x & x & x & x \\
+5 & . & . & x & x & x \\
+6 & . & . & . & x & x \\
+7 & . & . & . & . & x \\
+\end{tabular}
+\end{center}
+
+Following shows how the various polynomial errors cover intervals.
+Notice that the left and right 3 intervals are not real integers.
+\\
+\\
+\\
+\xymatrix @C=2mm@R=3mm{ 
+fxn     & & & & 0 \ar@{-}[d] & & 1\ar@{-}[d] & & 2\ar@{-}[d] & & 3\ar@{-}[d] & & 4\ar@{-}[d] & & 5\ar@{-}[d] & & 6\ar@{-}[d] & & 7\ar@{-}[d]   \\
+4 & & & & \ar[dl] \ar[dr] & & & & & & & & & & & & & & \ar[dl] \ar[dr] \\
+3 & & & \ar[dl] \ar[dr] & & \ar[dl] \ar[dr] & & & & & & & & & & & & \ar[dl] \ar[dr] & & \ar[dl] \ar[dr] \\
+2 & & \ar[dl] \ar[dr] & & \ar[dl] \ar[dr] & & \ar[dl] \ar[dr] & & & & & & & & & & \ar[dl] \ar[dr] & & \ar[dl] \ar[dr] & & \ar[dl] \ar[dr] \\
+1 & 0 \ar[r] & & 1 \ar[r] & & 2\ar[r]  & & 3\ar[r] \ar@{-}[d]  & & 4 & & 5 & & 6 & & 7\ar[r]  & & 8\ar[r]  \ar@{-}[d]  & & 9\ar[r]  & & 10\ar[r]  & & 11 \\
+  & 0 \ar[r] & & 0 \ar[r] & & 0\ar[r]  & & 0\ar[r] \ar@{-}[d]  & & 1 & & 2 & & 4 & & 6\ar[r]  & & 12\ar[r]  \ar@{-}[d]  & & 12\ar[r]  & & 12\ar[r]  & & 12 \\
+  &  & & & & & & & & & & & & & & & & & & & & & & 
+}
+
+
+\end{document}
+
